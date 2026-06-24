@@ -39,7 +39,7 @@ export const urls: DirLink[] = [
     site: "What's in my mess",
     url: "https://whatsinmess.vercel.app/",
     type: "unofficial",
-    description: "Check today’s mess menu.",
+    description: "Check today's mess menu.",
   },
   {
     site: "KaizenKlass",
@@ -76,6 +76,12 @@ export const urls: DirLink[] = [
     url: "https://www.srmist.edu.in/events/",
     type: "official",
     description: "Stay updated with campus events.",
+  },
+  {
+    site: "Academic Schedule",
+    url: "https://www.srmist.edu.in/students/",
+    type: "official",
+    description: "View academic schedules and calendars.",
   },
   {
     site: "E-Library",
