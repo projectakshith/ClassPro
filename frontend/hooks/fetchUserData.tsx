@@ -81,7 +81,7 @@ async function fetchData(): Promise<AllResponse> {
 			year: yearVal,
 			department: profile.dept || "",
 			section: profile.section || "",
-			specialization: "",
+			combo: "",
 		};
 
 		const coursesDict = data.courses || {};

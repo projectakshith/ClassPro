@@ -82,6 +82,10 @@ function getCalendarFromLocal(): CalendarResponse {
 		index: 0,
 		calendar: calendarList,
 		requestedAt: Date.now(),
+		logout: false,
+		error: false,
+		message: "",
+		status: 200,
 	};
 }
 

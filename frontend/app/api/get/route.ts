@@ -46,7 +46,7 @@ export async function GET(req: Request) {
 		year: yearVal,
 		department: profile.dept || "",
 		section: profile.section || "",
-		specialization: "",
+		combo: "",
 	};
 
 	const coursesDict = data.courses || {};
