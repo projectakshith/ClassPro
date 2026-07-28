@@ -4,25 +4,20 @@
   "private": true,
   "packageManager": "bun@1.1.38",
   "workspaces": [
-    "frontend",
-    "backend"
+    "frontend"
   ],
   "scripts": {
-    "dev": "bun run sync:env && concurrently \"bun run dev:frontend\" \"bun run dev:backend\"",
-    "dev:backend": "cd backend && go run src/main.go",
+    "dev": "bun run sync:env && bun run dev:frontend",
     "dev:frontend": "cd frontend && bun run dev",
-    "sync:env": "copyfiles -E .env frontend && copyfiles -E .env backend",
-    "build": "bun run build:frontend && bun run build:backend",
+    "sync:env": "copyfiles -E .env frontend",
+    "build": "bun run build:frontend",
     "build:frontend": "cd frontend && bun run build",
-    "build:backend": "cd backend && go build -o bin/main src/main.go",
     "start": "bun run start:frontend",
     "start:frontend": "cd frontend && bun run start",
-    "start:backend": "node -e \"require('child_process').execSync(process.platform === 'win32' ? 'backend/bin/main.exe' : 'backend/bin/main', { stdio: 'inherit' })\"",
     "lint": "cd frontend && bun run lint",
-    "install:all": "bun run install:frontend && bun run install:backend",
+    "install:all": "bun run install:frontend",
     "install:frontend": "cd frontend && bun install",
-    "install:backend": "cd backend && go mod tidy",
-    "clean": "rimraf frontend/node_modules frontend/.next backend/bin",
+    "clean": "rimraf frontend/node_modules frontend/.next",
     "docker:build": "docker compose build",
     "docker:up": "docker compose up",
     "docker:down": "docker compose down"
@@ -35,7 +30,6 @@
   },
   "engines": {
     "node": ">=20.11.0",
-    "bun": ">=1.1.0",
-    "go": ">=1.23.0"
+    "bun": ">=1.1.0"
   }
-} 
+}
