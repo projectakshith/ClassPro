@@ -78,7 +78,7 @@ const GradeCard = memo(function GradeCard({
     courses: Course[]
 }) {
     const [editMode, setEditMode] = useState(false);
-    const [expectedInternal, setExpectedInternal] = useState(60 - Number(mark.overall.total));
+    const [expectedInternal, setExpectedInternal] = useState(Math.max(0, 60 - Number(mark.overall.total)));
     const [requiredMarks, setRequiredMarks] = useState("0");
 
        
@@ -110,12 +110,11 @@ const GradeCard = memo(function GradeCard({
         if (!mark) return;
         const total = Number(mark.overall.total);
         const scored = Number(mark.overall.scored);
-        const lostMark = total - scored;
 
         const calculatedGrade =
             total == 100
-                ? getGrade(Number(mark.overall.scored))
-                : determineGrade(lostMark, total);
+                ? getGrade(scored)
+                : determineGrade(scored, total);
                 
         updateGrade(mark.courseCode, calculatedGrade);
     }, [mark, updateGrade]);

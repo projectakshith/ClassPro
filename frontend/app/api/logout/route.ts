@@ -1,25 +1,25 @@
-import { token } from "@/utils/Tokenize";
-import rotateUrl from "@/utils/URL";
 import { cookies } from "next/headers";
 
 export async function DELETE() {
-	const cookie = await cookies();
+	const cookieStore = await cookies();
+	const key = cookieStore.get("key")?.value || "";
 
-	const a = await fetch(`${rotateUrl()}/logout`, {
-		method: "DELETE",
-		headers: {
-			cookie: `${cookie.get("key")?.value ?? ""}`,
-			Authorization: `Bearer ${token()}`,
-			"X-CSRF-Token": cookie.get("key")?.value ?? "",
-			Origin: "https://class-pro.vercel.app",
-		},
-	});
+	try {
+		await fetch(
+			"https://academia.srmist.edu.in/accounts/p/10002227248/logout?servicename=ZohoCreator&serviceurl=https://academia.srmist.edu.in",
+			{
+				method: "GET",
+				headers: {
+					cookie: key,
+					"User-Agent": "Mozilla/5.0",
+				},
+			},
+		);
+	} catch {}
 
-	if (a.ok) {
-		for (const c of cookie.getAll()) {
-			cookie.delete(c);
-		}
-		return Response.json({ message: "Logged out" });
+	for (const c of cookieStore.getAll()) {
+		cookieStore.delete(c.name);
 	}
-		return Response.json({ message: "Failed to log out" });
+
+	return Response.json({ message: "Logged out" });
 }

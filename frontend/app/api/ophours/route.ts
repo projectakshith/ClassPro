@@ -1,10 +1,7 @@
-import { supabase } from "@/utils/Database/supabase";
 import { cookies } from "next/headers";
-import { encode } from "@/utils/Cookies";
 
 export async function POST(req: Request) {
-	const cookie = await cookies();
-	const key = cookie.get("key")?.value ?? "";
+	const cookieStore = await cookies();
 	const body = await req.json();
 	const { ophours } = body;
 
@@ -21,34 +18,12 @@ export async function POST(req: Request) {
 	}
 
 	const ophoursString = ophours.join(",");
+	cookieStore.set("ophours", ophoursString, { maxAge: 60 * 60 * 24 * 365, path: "/" });
 
-	try {
-		const { error } = await supabase
-			.from("goscrape")
-			.update({ ophour: ophoursString })
-			.eq("token", encode(key));
-
-		if (error) {
-			return Response.json(
-				{ error: error.message },
-				{
-					status: 400,
-				},
-			);
-		}
-
-		return Response.json(
-			{ success: true },
-			{
-				status: 200,
-			},
-		);
-	} catch (error) {
-		return Response.json(
-			{ error: (error as any).message },
-			{
-				status: 500,
-			},
-		);
-	}
+	return Response.json(
+		{ success: true },
+		{
+			status: 200,
+		},
+	);
 }
