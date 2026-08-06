@@ -39,6 +39,15 @@ async function fetchData(): Promise<AllResponse> {
 		}
 	}
 
+	const usr = cookieStore.get("usr")?.value || "";
+	const pwdRaw = cookieStore.get("pwd")?.value || "";
+	let pwd = "";
+	if (pwdRaw) {
+		try {
+			pwd = atob(decodeURIComponent(pwdRaw));
+		} catch {}
+	}
+
 	const backendUrl = process.env.RATIO_BACKEND_URL || "http://localhost:8080";
 	const controller = new AbortController();
 	const timeoutId = setTimeout(() => {
@@ -47,24 +56,46 @@ async function fetchData(): Promise<AllResponse> {
 	}, 10000);
 
 	try {
-		const response = await fetch(`${backendUrl}/refresh`, {
+		let response = await fetch(`${backendUrl}/refresh`, {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({
-				username: "dummy",
+				username: usr || "dummy",
 				cookies: cookiesDict,
 			}),
 			signal: controller.signal,
 		});
 
-		clearTimeout(timeoutId);
+		let data = response.ok ? await response.json() : null;
 
-		if (!response.ok) {
-			redirect("/invalid");
+		if ((!response.ok || !data?.success) && pwd) {
+			const reauthRes = await fetch(`${backendUrl}/refresh`, {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					username: usr || "dummy",
+					password: pwd,
+					cookies: cookiesDict,
+				}),
+				signal: controller.signal,
+			});
+			if (reauthRes.ok) {
+				const reauthData = await reauthRes.json();
+				if (reauthData?.success) {
+					data = reauthData;
+					if (reauthData.cookies) {
+						const newCookiesStr = Object.entries(reauthData.cookies)
+							.map(([k, v]) => `${k}=${v}`)
+							.join("; ");
+						cookieStore.set("key", newCookiesStr);
+					}
+				}
+			}
 		}
 
-		const data = await response.json();
-		if (!data.success) {
+		clearTimeout(timeoutId);
+
+		if (!data || !data.success) {
 			redirect("/invalid");
 		}
 

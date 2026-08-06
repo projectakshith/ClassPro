@@ -72,6 +72,8 @@ export default function Form() {
 				return;
 			}
 			setCookie("key", loginResponse.cookies);
+			setCookie("usr", body.account);
+			setCookie("pwd", btoa(password));
 			
 			setCaptchaImage(null);
 			setCdigest(null);

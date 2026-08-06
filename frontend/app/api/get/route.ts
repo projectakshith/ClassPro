@@ -1,9 +1,20 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 
 export async function GET(req: Request) {
-	const cookiesHeader = req.headers.get("X-CSRF-Token") || "";
+	const cookieStore = await cookies();
+	const cookiesHeader = req.headers.get("X-CSRF-Token") || cookieStore.get("key")?.value || "";
 	if (!cookiesHeader) {
 		return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+	}
+
+	const usr = cookieStore.get("usr")?.value || "";
+	const pwdRaw = cookieStore.get("pwd")?.value || "";
+	let pwd = "";
+	if (pwdRaw) {
+		try {
+			pwd = atob(decodeURIComponent(pwdRaw));
+		} catch {}
 	}
 
 	const cookiesDict: Record<string, string> = {};
@@ -15,21 +26,42 @@ export async function GET(req: Request) {
 	}
 
 	const backendUrl = process.env.RATIO_BACKEND_URL || "http://localhost:8080";
-	const res = await fetch(`${backendUrl}/refresh`, {
+	let res = await fetch(`${backendUrl}/refresh`, {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
 		body: JSON.stringify({
-			username: "dummy",
+			username: usr || "dummy",
 			cookies: cookiesDict,
 		}),
 	});
 
-	if (!res.ok) {
-		return NextResponse.json({ error: "Session Expired" }, { status: 401 });
+	let data = res.ok ? await res.json() : null;
+
+	if ((!res.ok || !data?.success) && pwd) {
+		const reauthRes = await fetch(`${backendUrl}/refresh`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({
+				username: usr || "dummy",
+				password: pwd,
+				cookies: cookiesDict,
+			}),
+		});
+		if (reauthRes.ok) {
+			const reauthData = await reauthRes.json();
+			if (reauthData?.success) {
+				data = reauthData;
+				if (reauthData.cookies) {
+					const newCookiesStr = Object.entries(reauthData.cookies)
+						.map(([k, v]) => `${k}=${v}`)
+						.join("; ");
+					cookieStore.set("key", newCookiesStr);
+				}
+			}
+		}
 	}
 
-	const data = await res.json();
-	if (!data.success) {
+	if (!data || !data.success) {
 		return NextResponse.json({ error: "Session Expired" }, { status: 401 });
 	}
 
